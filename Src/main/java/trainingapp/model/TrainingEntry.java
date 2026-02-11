@@ -8,7 +8,6 @@ public class TrainingEntry {
 	private int sets;
 	private int reps;
 	private double weight; // w kilogramach
-	private String notes;
 
 	public TrainingEntry() {}
 
