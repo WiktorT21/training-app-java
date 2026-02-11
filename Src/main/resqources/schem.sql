@@ -13,7 +13,8 @@ CREATE TABLE training_exercises (
 -- Tabela dla treningów
 CREATE TABLE trainings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date DATE NOT NULL
+    date DATE NOT NULL,
+    notes TEXT
 );
 
 -- Tabela dla rodzajów ćwiczeń
