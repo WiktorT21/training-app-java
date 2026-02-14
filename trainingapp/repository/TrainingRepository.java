@@ -2,7 +2,10 @@ package trainingapp.repository;
 
 import trainingapp.model.Training;
 import trainingapp.model.TrainingEntry;
+import trainingapp.model.Exercise;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TrainingRepository {
 
@@ -55,7 +58,7 @@ public class TrainingRepository {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // 5. W razie błędu -> COFAMY wszystko (Rollback)
+            // 5. W razie błędu -> COFAMY wszystko 
             if (conn != null) {
                 try {
                     System.err.println("Wycofywanie transakcji...");
@@ -74,5 +77,53 @@ public class TrainingRepository {
                 }
             }
         }
+    }
+
+    public List<Training> getAllTrainings() {
+        List<Training> trainings = new ArrayList<>();
+        String selectTrainingsSql = "SELECT id, date, notes FROM trainings ORDER BY date DESC";
+        String selectEntriesSql = "SELECT te.id, te.exercise_id, te.sets, te.reps, te.weight, e.name FROM training_exercises te JOIN exercises e ON te.exercise_id = e.id WHERE te.training_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmtTrainings = conn.prepareStatement(selectTrainingsSql);
+             ResultSet rsTrainings = stmtTrainings.executeQuery()) {
+             PreparedStatement stmtEntries = conn.prepareStatement(selectEntriesSql) {
+            
+            try (ResultSet rsTrainings = stmtTrainings.executeQuery()) {
+                while (rsTrainings.next()) {
+                int trainingId = rsTrainings.getInt("id");
+                java.sql.Date sqlDate = rsTrainings.getDate("date");
+                String notes = rsTrainings.getString("notes");
+
+                Training training = new Training(trainingId, sqlDate.toLocalDate(), notes);
+
+                
+                    stmtEntries.setInt(1, trainingId);
+                    try (ResultSet rsEntries = stmtEntries.executeQuery()) {
+                        while (rsEntries.next()) {
+                            int entryId = rsEntries.getInt("id");
+                            int exerciseId = rsEntries.getInt("exercise_id");
+                            String exerciseName = rsEntries.getString("name");
+                            int sets = rsEntries.getInt("sets");
+                            int reps = rsEntries.getInt("reps");
+                            double weight = rsEntries.getDouble("weight");
+
+                            // Tworzymy obiekt Exercise (minimalnie)
+                            Exercise exercise = new Exercise(exerciseId, exerciseName);
+                            TrainingEntry entry = new TrainingEntry(entryId, exercise, sets, reps, weight, "");
+
+                            training.addEntry(entry);
+                        }
+                    }
+                }
+
+                trainings.add(training);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return trainings;
     }
 }
